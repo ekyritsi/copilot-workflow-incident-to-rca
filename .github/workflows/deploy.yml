@@ -68,6 +68,8 @@ jobs:
             --resource-group "$RESOURCE_GROUP" \
             --name "$CONTAINER_APP_NAME" \
             --image "${registry_login_server}/incident-demo:${IMAGE_TAG}" \
+            --registry-server "$registry_login_server" \
+            --registry-identity system \
             --set-env-vars DEMO_FAILURE_MODE=healthy \
             --output none
 
