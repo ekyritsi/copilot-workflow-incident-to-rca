@@ -24,7 +24,7 @@ az deployment group what-if \
 
 The resource group should remain dedicated to the demo. Review the generated plan before creating resources.
 
-After provisioning, run `../scripts/configure-github-oidc.sh` with `RESOURCE_GROUP`, `SUBSCRIPTION_ID`, and `TENANT_ID` set. Create the repository `demo` Environment and add the printed values before pushing to `main`.
+After provisioning, run `./scripts/configure-github-oidc.sh` with `RESOURCE_GROUP`, `SUBSCRIPTION_ID`, and `TENANT_ID` set. Create the repository `demo` Environment and add the printed values before triggering the deployment.
 
 ## Resource map
 
