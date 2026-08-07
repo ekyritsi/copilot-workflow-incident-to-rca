@@ -11,6 +11,28 @@ This repository is a repeatable demonstration of GitHub Copilot App as an incide
 
 The demo is intentionally small, resettable, and safe to run in a dedicated Azure resource group.
 
+## What is included
+
+| Path | Purpose |
+| --- | --- |
+| `src/server.js` | Node.js demo service. It serves the status page/API, exposes `/health`, simulates outage and exception modes, and emits Application Insights telemetry. |
+| `test/server.test.js` | Verifies the documented failure modes and keeps the demo behavior reproducible. |
+| `Dockerfile` | Packages the service as a small, non-root Node.js container for Container Apps. |
+| `infra/main.bicep` | Declares the Azure resources required by the demo. |
+| `infra/README.md` | Infrastructure-specific deployment and review guidance. |
+| `scripts/seed-outage.sh` | Changes the deployed app to outage mode for the live incident demonstration. |
+| `scripts/reset.sh` | Restores the deployed app to healthy mode. |
+| `scripts/configure-github-oidc.sh` | Creates the federated GitHub Actions identity and prints the GitHub Environment variables needed for deployment. |
+| `.github/workflows/ci.yml` | Installs dependencies, checks JavaScript syntax, and runs tests. |
+| `.github/workflows/deploy.yml` | Authenticates with Azure using OIDC, builds/pushes the image, updates the Container App, and runs a health smoke test. |
+| `.github/workflows/codeql.yml` | Runs CodeQL analysis for JavaScript/TypeScript changes. |
+| `.github/copilot-instructions.md` | Defines the investigation, approval, remediation, verification, and RCA guardrails for Copilot. |
+| `.github/skills/incident-triage/SKILL.md` | Guides evidence-first correlation of Azure telemetry, GitHub changes, and deployments. |
+| `.github/skills/rca/SKILL.md` | Guides evidence-backed RCA and leadership-summary generation. |
+| `demo/prompts.md` | Reusable Copilot prompts for each stage of the workflow. |
+| `demo/demo-script.md` | Presenter script for running the end-to-end demonstration. |
+| `SECURITY.md` | Security, OIDC, environment protection, RBAC, and secret-handling guidance. |
+
 ## Architecture
 
 ```text
@@ -38,6 +60,42 @@ Copilot App <--- Azure MCP Server ------------------+
 - Azure MCP Server configured in Copilot App
 - Permissions to deploy to the demo resource group
 
+## Azure resources
+
+`infra/main.bicep` creates the following resources in the selected resource group. Names receive a deterministic suffix derived from that resource group, so another user deploying the same template gets their own resource names.
+
+| Resource | Why it exists |
+| --- | --- |
+| Container Apps managed environment | Provides the managed runtime boundary for the demo Container App. |
+| Container App | Runs the demo service with external HTTPS ingress and scale-to-zero behavior to reduce idle cost. |
+| Azure Container Registry (Basic) | Stores the image built by GitHub Actions. Anonymous pulls and registry admin credentials are disabled. |
+| Log Analytics workspace | Collects Container Apps platform and application logs for Copilot/Azure MCP investigation. |
+| Workspace-based Application Insights | Collects requests, failures, exceptions, dependencies, and performance telemetry for incident diagnosis. |
+| User-assigned managed identity | Lets GitHub Actions authenticate to Azure with OIDC and push the image without storing an Azure client secret. |
+| Application Insights Smart Detection action group | Azure-created alert integration associated with Application Insights telemetry. It is retained with the active deployment. |
+
+The Container App identity also receives `AcrPull` on the active registry. The GitHub Actions identity receives resource-group deployment access and `AcrPush`; this bootstrap scope is intentionally simple for a demo and should be narrowed before production use.
+
+### Portability to another Azure subscription
+
+Nothing in the application or Bicep template is tied to the original subscription or tenant. A new user should:
+
+```bash
+az login
+az account set --subscription "<your-subscription-id>"
+az group create --name "<your-resource-group>" --location eastus
+az deployment group what-if \
+  --resource-group "<your-resource-group>" \
+  --template-file infra/main.bicep \
+  --parameters appName=incident-demo
+az deployment group create \
+  --resource-group "<your-resource-group>" \
+  --template-file infra/main.bicep \
+  --parameters appName=incident-demo
+```
+
+Then configure the GitHub `demo` Environment using the values printed by `scripts/configure-github-oidc.sh`. The `AZURE_SUBSCRIPTION_ID`, `AZURE_TENANT_ID`, resource-group name, Container App name, registry name, and client ID are deployment-specific identifiers; they must be supplied by the person recreating the demo and must not be committed to the repository.
+
 ## Local run
 
 ```bash
@@ -60,6 +118,8 @@ Supported failure modes:
 - `healthy` (default): requests succeed.
 - `outage`: health and application requests return HTTP 503.
 - `exception`: application requests emit an exception and return HTTP 500.
+
+The current root endpoint is intentionally minimal and is primarily a machine-readable demo surface. It returns the service status as JSON; `/health` is the endpoint used by the deployment smoke test. A richer visual status page is a planned presentation enhancement and should not change the health/API contract.
 
 ## Azure deployment
 
@@ -111,6 +171,8 @@ The bootstrap identity is scoped to the demo resource group for simplicity. Use 
 The values above are identifiers, not credentials, so they belong in GitHub Environment **Variables**. OIDC means this workflow does not need an Azure client secret. If a future integration requires a credential, store it only as a GitHub Environment **Secret** and reference it through `${{ secrets.NAME }}`.
 
 In repository settings, create an environment named `demo`, add the variables above, and configure required reviewers. This makes production-like deployment approval visible during the demo.
+
+The workflow uses the `demo` Environment, so the OIDC federated credential must match that environment. The setup script supports deployment-specific `CONTAINER_APP_NAME`, `REGISTRY_NAME`, `RESOURCE_GROUP`, `SUBSCRIPTION_ID`, and `TENANT_ID` environment variables when the deployment output is not the default deployment name.
 
 ### Deploy the app
 
