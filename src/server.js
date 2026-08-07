@@ -44,11 +44,16 @@ function reportException(error) {
 }
 
 function getOrdersPayload() {
+  const orders = [
+    { id: "demo-1001", status: "processing" },
+    { id: "demo-1002", status: "shipped" }
+  ];
+
   return {
-    orders: [
-      { id: "demo-1001", status: "processing" },
-      { id: "demo-1002", status: "shipped" }
-    ]
+    orders: orders.map((order) => ({
+      ...order,
+      estimatedDelivery: order.estimatedDelivery.toISOString()
+    }))
   };
 }
 
