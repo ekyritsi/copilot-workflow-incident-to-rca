@@ -5,6 +5,8 @@ description: Create an evidence-backed incident retrospective and leadership-rea
 
 # Root cause analysis
 
+When the user asks to create the RCA, create a formatted Microsoft Word document (`.docx`) in M365 using the DOCX/Word skill. Do not provide only a chat response or Markdown file.
+
 Create an RCA with these sections:
 
 - Executive summary
@@ -19,4 +21,3 @@ Create an RCA with these sections:
 - Evidence links
 
 Use plain language for leadership content and preserve technical evidence in an appendix.
-

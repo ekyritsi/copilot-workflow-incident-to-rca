@@ -20,5 +20,6 @@ This repository is a controlled demonstration environment. Treat Azure and GitHu
 
 ## RCA rules
 
-An RCA must include impact, customer symptoms, timeline, detection, root cause, contributing factors, mitigation, verification evidence, and prevention actions with owners and dates.
+When creating the RCA, use WorkIQ/M365 and the DOCX/Word skill to produce a formatted Word document (`.docx`), not only a chat response or Markdown file.
 
+An RCA must include impact, customer symptoms, timeline, detection, root cause, contributing factors, mitigation, verification evidence, and prevention actions with owners and dates.

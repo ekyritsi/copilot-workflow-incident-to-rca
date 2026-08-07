@@ -39,7 +39,7 @@ az identity federated-credential create \
   --identity-name "$identity_name" \
   --name "$federated_name" \
   --issuer "https://token.actions.githubusercontent.com" \
-  --subject "repo:${github_owner}/${github_repository}:ref:refs/heads/main" \
+  --subject "repo:${github_owner}/${github_repository}:environment:demo" \
   --audiences "api://AzureADTokenExchange" \
   --output none
 

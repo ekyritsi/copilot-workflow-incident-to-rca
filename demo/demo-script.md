@@ -26,6 +26,6 @@
 
 ## Organizational learning
 
-1. Ask Copilot to create the RCA in M365.
+1. Ask Copilot to create the evidence-backed RCA as a formatted Word document (`.docx`) in M365.
 2. Ask Copilot to create the LT deck.
 3. End by showing that the same evidence became an operational fix, a durable record, and an executive communication.

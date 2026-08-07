@@ -31,7 +31,7 @@ The fix has been deployed. Verify recovery using the app health endpoint, an end
 ## RCA and leadership communication
 
 ```text
-Create an evidence-backed RCA for this incident using the investigation results and linked GitHub and Azure evidence. Include impact, timeline, root cause, mitigation, verification, and prevention actions with owners and due dates.
+Create an evidence-backed RCA as a Word document. Use the investigation results and linked GitHub and Azure evidence. Include impact, timeline, root cause, mitigation, verification, and prevention actions with owners and due dates.
 ```
 
 ```text
