@@ -15,7 +15,9 @@ The demo is intentionally small, resettable, and safe to run in a dedicated Azur
 
 | Path | Purpose |
 | --- | --- |
-| `src/server.js` | Node.js demo service. It serves the status page/API, exposes `/health`, simulates outage and exception modes, and emits Application Insights telemetry. |
+| `src/server.js` | Node.js demo service. It serves the GitHub-styled status UI and API, exposes `/health`, simulates outage and exception modes, and emits Application Insights telemetry. |
+| `public/index.html` | Primer- and GitHub-brand-inspired status UI rendered for healthy, outage, and exception states. |
+| `public/mona-single.png` | Single mascot artwork used by the status UI. |
 | `test/server.test.js` | Verifies the documented failure modes and keeps the demo behavior reproducible. |
 | `Dockerfile` | Packages the service as a small, non-root Node.js container for Container Apps. |
 | `infra/main.bicep` | Declares the Azure resources required by the demo. |
@@ -119,7 +121,7 @@ Supported failure modes:
 - `outage`: health and application requests return HTTP 503.
 - `exception`: application requests emit an exception and return HTTP 500.
 
-The current root endpoint is intentionally minimal and is primarily a machine-readable demo surface. It returns the service status as JSON; `/health` is the endpoint used by the deployment smoke test. A richer visual status page is a planned presentation enhancement and should not change the health/API contract.
+The root endpoint renders a lightweight GitHub-styled status page. It reflects the active failure mode and keeps `/health` and `/api/orders` as the machine-readable contracts used by the deployment and Copilot investigation flow.
 
 ## Azure deployment
 

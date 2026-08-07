@@ -1,7 +1,13 @@
 import http from "node:http";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const port = Number.parseInt(process.env.PORT ?? "8080", 10);
 const failureMode = () => process.env.DEMO_FAILURE_MODE ?? "healthy";
+const publicDirectory = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "public");
+const statusPage = await readFile(path.join(publicDirectory, "index.html"), "utf8");
+const mascotImage = await readFile(path.join(publicDirectory, "mona-single.png"));
 
 let appInsights;
 if (process.env.APPLICATIONINSIGHTS_CONNECTION_STRING) {
@@ -24,9 +30,26 @@ function respond(response, statusCode, body) {
   response.end(JSON.stringify(body));
 }
 
+function respondHtml(response, statusCode, mode) {
+  response.writeHead(statusCode, {
+    "Content-Type": "text/html; charset=utf-8",
+    "Cache-Control": "no-store"
+  });
+  response.end(statusPage.replace("__DEMO_MODE__", JSON.stringify(mode)));
+}
+
 function handleRequest(request, response) {
   const url = new URL(request.url ?? "/", `http://${request.headers.host ?? "localhost"}`);
   const mode = failureMode();
+
+  if (url.pathname === "/mona-single.png") {
+    response.writeHead(200, {
+      "Content-Type": "image/png",
+      "Cache-Control": "public, max-age=3600"
+    });
+    response.end(mascotImage);
+    return;
+  }
 
   if (url.pathname === "/health") {
     respond(
@@ -66,18 +89,7 @@ function handleRequest(request, response) {
   }
 
   if (url.pathname === "/") {
-    respond(
-      response,
-      mode === "outage" ? 503 : 200,
-      mode === "outage"
-        ? { error: "site_unavailable", incident: "INC-DEMO-001" }
-        : {
-            service: "incident-to-rca-demo",
-            message: "The demo application is running.",
-            health: "/health",
-            orders: "/api/orders"
-          }
-    );
+    respondHtml(response, mode === "outage" ? 503 : 200, mode);
     return;
   }
 
@@ -102,4 +114,3 @@ function shutdown(signal) {
 
 process.on("SIGTERM", () => shutdown("SIGTERM"));
 process.on("SIGINT", () => shutdown("SIGINT"));
-

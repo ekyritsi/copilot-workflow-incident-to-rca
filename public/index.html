@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Incident to RCA Demo</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --canvas-default: #f6f8fa;
+      --canvas-subtle: #eef1f4;
+      --canvas-inset: #ffffff;
+      --fg-default: #1f2328;
+      --fg-muted: #59636e;
+      --fg-subtle: #6e7781;
+      --border-default: #d0d7de;
+      --border-muted: #d8dee4;
+      --accent-fg: #0969da;
+      --accent-emphasis: #0969da;
+      --success-fg: #1a7f37;
+      --success-emphasis: #1f883d;
+      --danger-fg: #cf222e;
+      --danger-emphasis: #cf222e;
+      --attention-fg: #9a6700;
+      --attention-emphasis: #bf8700;
+      --shadow-small: 0 1px 3px rgba(31, 35, 40, .12);
+      --shadow-medium: 0 8px 24px rgba(31, 35, 40, .12);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        color-scheme: dark;
+        --canvas-default: #0d1117;
+        --canvas-subtle: #161b22;
+        --canvas-inset: #010409;
+        --fg-default: #f0f6fc;
+        --fg-muted: #9198a1;
+        --fg-subtle: #8b949e;
+        --border-default: #3d444d;
+        --border-muted: #21262d;
+        --accent-fg: #4493f8;
+        --accent-emphasis: #1f6feb;
+        --success-fg: #3fb950;
+        --success-emphasis: #238636;
+        --danger-fg: #ff7b72;
+        --danger-emphasis: #da3633;
+        --attention-fg: #d29922;
+        --attention-emphasis: #9e6a03;
+        --shadow-small: 0 1px 3px rgba(0, 0, 0, .35);
+        --shadow-medium: 0 8px 24px rgba(0, 0, 0, .45);
+      }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--canvas-default); color: var(--fg-default); font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .shell { max-width: 1120px; margin: 0 auto; padding: 32px 24px 48px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .github-mark { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--fg-default); color: var(--canvas-default); font-size: 22px; font-weight: 800; }
+    .eyebrow { margin: 0; color: var(--fg-muted); font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+    h1, h2, p { margin-top: 0; }
+    h1 { margin-bottom: 0; font-size: 26px; letter-spacing: -.02em; }
+    .badge { border: 1px solid var(--border-default); border-radius: 2em; padding: 4px 10px; color: var(--fg-muted); font-size: 12px; font-weight: 600; }
+    .hero { display: grid; grid-template-columns: 1fr 360px; gap: 16px; margin-bottom: 16px; }
+    .panel { border: 1px solid var(--border-default); border-radius: 6px; background: var(--canvas-inset); box-shadow: var(--shadow-small); }
+    .status-panel { padding: 28px; }
+    .status-line { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .status-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--success-emphasis); box-shadow: 0 0 0 5px color-mix(in srgb, var(--success-emphasis) 18%, transparent); }
+    .status-dot.outage { background: var(--danger-emphasis); box-shadow: 0 0 0 5px color-mix(in srgb, var(--danger-emphasis) 18%, transparent); }
+    .status-dot.exception { background: var(--attention-emphasis); box-shadow: 0 0 0 5px color-mix(in srgb, var(--attention-emphasis) 18%, transparent); }
+    .status-title { margin: 0; font-size: 22px; }
+    .status-copy { max-width: 620px; margin-bottom: 20px; color: var(--fg-muted); font-size: 16px; }
+    .mode { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border-muted); border-radius: 6px; padding: 6px 9px; color: var(--fg-muted); font-size: 12px; }
+    .mode code, .metric code { color: var(--accent-fg); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .art-panel { display: grid; place-items: center; min-height: 280px; padding: 18px; background: var(--canvas-subtle); overflow: hidden; }
+    .art-frame { position: relative; width: min(100%, 285px); padding: 10px; border: 1px solid var(--border-default); border-radius: 6px; background: var(--canvas-inset); box-shadow: var(--shadow-medium); }
+    .art-frame img { display: block; width: 100%; border-radius: 4px; }
+    .sign { position: absolute; right: -34px; bottom: 18px; border: 1px solid var(--border-default); border-radius: 6px; padding: 8px 10px; transform: rotate(-5deg); background: var(--canvas-inset); color: var(--success-fg); font-size: 11px; font-weight: 700; text-align: center; box-shadow: var(--shadow-small); }
+    .sign.outage { color: var(--danger-fg); }
+    .sign.exception { color: var(--attention-fg); }
+    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .metric { padding: 18px; }
+    .metric-label { margin-bottom: 8px; color: var(--fg-muted); font-size: 12px; font-weight: 600; text-transform: uppercase; }
+    .metric-value { margin-bottom: 4px; font-size: 20px; font-weight: 600; }
+    .metric-note { margin: 0; color: var(--fg-subtle); font-size: 12px; }
+    .footer { display: flex; justify-content: space-between; gap: 12px; margin-top: 16px; color: var(--fg-muted); font-size: 12px; }
+    @media (max-width: 760px) { .hero, .metrics { grid-template-columns: 1fr; } .topbar, .footer { align-items: flex-start; flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="github-mark">⌁</div>
+        <div><p class="eyebrow">Copilot incident demo</p><h1>Incident to RCA</h1></div>
+      </div>
+      <span class="badge">Synthetic demo environment</span>
+    </header>
+    <section class="hero">
+      <article class="panel status-panel">
+        <div class="status-line"><span id="statusDot" class="status-dot"></span><h2 id="statusTitle" class="status-title">All systems operational</h2></div>
+        <p id="statusCopy" class="status-copy">The demo service is responding normally. Copilot can use the telemetry and change history to investigate this service.</p>
+        <span class="mode">Current mode: <code id="mode">healthy</code></span>
+      </article>
+      <aside class="panel art-panel">
+        <div class="art-frame">
+          <img src="/mona-single.png" alt="GitHub mascot illustration">
+          <span id="sign" class="sign">SYSTEMS<br>OPERATIONAL</span>
+        </div>
+      </aside>
+    </section>
+    <section class="metrics" aria-label="Service details">
+      <article class="panel metric"><p class="metric-label">Service</p><p class="metric-value">incident-demo</p><p class="metric-note">Azure Container Apps</p></article>
+      <article class="panel metric"><p class="metric-label">Health endpoint</p><p id="health" class="metric-value">200 OK</p><p class="metric-note"><code>/health</code> · deployment smoke test</p></article>
+      <article class="panel metric"><p class="metric-label">Telemetry</p><p class="metric-value">Connected</p><p class="metric-note">Application Insights + Log Analytics</p></article>
+    </section>
+    <footer class="footer"><span>Built for the Copilot incident investigation flow.</span><span>Environment: synthetic data only</span></footer>
+  </main>
+  <script>
+    const mode = __DEMO_MODE__;
+    const states = {
+      healthy: { title: "All systems operational", copy: "The demo service is responding normally. Copilot can use the telemetry and change history to investigate this service.", sign: "SYSTEMS<br>OPERATIONAL", health: "200 OK", className: "" },
+      outage: { title: "Incident detected", copy: "The simulated dependency is unavailable. This is the starting point for Copilot's telemetry, logs, change-correlation, and remediation flow.", sign: "INCIDENT<br>DETECTED", health: "503 ERROR", className: "outage" },
+      exception: { title: "Application errors elevated", copy: "The service is reachable, but a simulated serialization regression is producing application exceptions for the orders endpoint.", sign: "ERRORS<br>ELEVATED", health: "500 ERROR", className: "exception" }
+    };
+    const state = states[mode] ?? states.healthy;
+    document.querySelector("#statusTitle").textContent = state.title;
+    document.querySelector("#statusCopy").textContent = state.copy;
+    document.querySelector("#sign").innerHTML = state.sign;
+    document.querySelector("#health").textContent = state.health;
+    document.querySelector("#mode").textContent = mode;
+    document.querySelector("#statusDot").className = `status-dot ${state.className}`;
+    document.querySelector("#sign").className = `sign ${state.className}`;
+  </script>
+</body>
+</html>
