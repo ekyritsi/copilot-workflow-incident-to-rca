@@ -4,18 +4,20 @@
 
 1. Show the healthy site and `/health` endpoint.
 2. Show the repository and the deployment workflow.
-3. Explain that the outage is seeded and reversible.
+3. Explain that the incident is introduced through a reviewed GitHub change and is reversible through a code fix.
 
 ## Incident
 
-1. Set `DEMO_FAILURE_MODE=outage` on the Container App.
-2. Show the site returning HTTP 503.
-3. Ask Copilot to investigate without making changes.
-4. Highlight the evidence trail: endpoint failures, timestamps, deployment/configuration history, and GitHub changes.
+1. Run `GITHUB_REPOSITORY=github/copilot-workflow-incident-to-rca ./scripts/seed-regression.sh`.
+2. Review and merge the generated pull request.
+3. Let GitHub Actions deploy the new revision.
+4. Show the landing page and `/health` succeeding while `/api/orders` returns HTTP 500.
+5. Ask Copilot to investigate without making changes.
+6. Highlight the evidence trail: endpoint failures, timestamps, deployment revision, merged commit, and Actions run.
 
 ## Recovery
 
-1. Ask Copilot for a remediation plan.
+1. Ask Copilot for a remediation plan that changes application code rather than flipping a runtime mode.
 2. Approve the plan.
 3. Have Copilot prepare the change as a pull request.
 4. Let CI run tests and require approval before deployment.

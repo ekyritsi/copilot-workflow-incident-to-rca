@@ -68,11 +68,14 @@
     .status-dot.exception { background: var(--attention-emphasis); box-shadow: 0 0 0 5px color-mix(in srgb, var(--attention-emphasis) 18%, transparent); }
     .status-title { margin: 0; font-size: 22px; }
     .status-copy { max-width: 620px; margin-bottom: 20px; color: var(--fg-muted); font-size: 16px; }
+    .incident-banner { display: none; margin-bottom: 20px; border: 1px solid var(--danger-fg); border-left: 4px solid var(--danger-emphasis); border-radius: 6px; padding: 10px 12px; background: color-mix(in srgb, var(--danger-emphasis) 8%, var(--canvas-inset)); color: var(--danger-fg); font-size: 13px; font-weight: 600; }
+    .incident-banner.visible { display: block; }
     .mode { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border-muted); border-radius: 6px; padding: 6px 9px; color: var(--fg-muted); font-size: 12px; }
     .mode code, .metric code { color: var(--accent-fg); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
     .art-panel { display: grid; place-items: center; min-height: 280px; padding: 18px; background: var(--canvas-subtle); overflow: hidden; }
     .art-frame { position: relative; width: min(100%, 285px); padding: 10px; border: 1px solid var(--border-default); border-radius: 6px; background: var(--canvas-inset); box-shadow: var(--shadow-medium); }
     .art-frame img { display: block; width: 100%; border-radius: 4px; }
+    .art-frame.outage img { transform: rotate(180deg); }
     .sign { position: absolute; right: -34px; bottom: 18px; border: 1px solid var(--border-default); border-radius: 6px; padding: 8px 10px; transform: rotate(-5deg); background: var(--canvas-inset); color: var(--success-fg); font-size: 11px; font-weight: 700; text-align: center; box-shadow: var(--shadow-small); }
     .sign.outage { color: var(--danger-fg); }
     .sign.exception { color: var(--attention-fg); }
@@ -98,6 +101,7 @@
       <article class="panel status-panel">
         <div class="status-line"><span id="statusDot" class="status-dot"></span><h2 id="statusTitle" class="status-title">All systems operational</h2></div>
         <p id="statusCopy" class="status-copy">The demo service is responding normally. Copilot can use the telemetry and change history to investigate this service.</p>
+        <div id="incidentBanner" class="incident-banner" role="alert">Customer impact: the service is unavailable.</div>
         <span class="mode">Current mode: <code id="mode">healthy</code></span>
       </article>
       <aside class="panel art-panel">
@@ -129,6 +133,8 @@
     document.querySelector("#mode").textContent = mode;
     document.querySelector("#statusDot").className = `status-dot ${state.className}`;
     document.querySelector("#sign").className = `sign ${state.className}`;
+    document.querySelector(".art-frame").className = `art-frame ${state.className}`;
+    document.querySelector("#incidentBanner").className = `incident-banner ${mode === "outage" || mode === "exception" ? "visible" : ""}`;
   </script>
 </body>
 </html>

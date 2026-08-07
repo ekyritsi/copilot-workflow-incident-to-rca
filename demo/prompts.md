@@ -5,21 +5,21 @@ Use these prompts in order. Replace placeholders with the actual resource group,
 ## Triage
 
 ```text
-The demo site is returning errors. Investigate the latest health and application signals in Azure for resource group rg-copilot-incident-demo. Start read-only. Tell me the incident window, affected endpoints, error rate, and the evidence supporting your conclusion.
+The demo site is returning errors. Investigate the latest health and application signals in Azure for resource group rg-copilot-incident-demo. Start read-only. Check both the site health endpoint and the business endpoint /api/orders. Tell me the incident window, affected endpoints, error rate, and the evidence supporting your conclusion.
 ```
 
 ```text
-Correlate the Azure failure window with recent deployments, GitHub commits, pull requests, and Actions runs for this repository. Identify the most likely change and distinguish confirmed facts from hypotheses.
+Correlate the Azure failure window with recent Container App revisions, GitHub commits, pull requests, and Actions runs for this repository. Focus on changes deployed immediately before the first /api/orders failures. Identify the most likely regression and distinguish confirmed facts from hypotheses. Do not change configuration or deploy anything.
 ```
 
 ## Remediation
 
 ```text
-Propose the lowest-risk fix. Include the exact change, tests, deployment plan, rollback plan, and risks. Do not modify files or deploy yet.
+Propose the lowest-risk code fix for the orders regression. Include the exact file and change, tests for both /health and /api/orders, deployment plan, rollback plan, and risks. Do not modify files or deploy yet. Do not recommend simply changing DEMO_FAILURE_MODE or running reset.sh.
 ```
 
 ```text
-Implement the approved fix in a branch, run the tests, and prepare a pull request. Do not deploy until I approve the pull request.
+Implement the approved fix in a branch, run the tests, and prepare a pull request. Do not deploy until I approve the pull request. The remediation must be delivered through the repository and GitHub Actions.
 ```
 
 ## Verification
@@ -37,4 +37,3 @@ Create an evidence-backed RCA for this incident using the investigation results 
 ```text
 Create a concise leadership deck from the RCA. Include business impact, customer symptoms, timeline, root cause in plain language, remediation, current status, and prevention commitments. Keep detailed technical evidence in an appendix.
 ```
-

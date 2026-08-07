@@ -15,7 +15,7 @@ The demo is intentionally small, resettable, and safe to run in a dedicated Azur
 
 | Path | Purpose |
 | --- | --- |
-| `src/server.js` | Node.js demo service. It serves the GitHub-styled status UI and API, exposes `/health`, simulates outage and exception modes, and emits Application Insights telemetry. |
+| `src/server.js` | Node.js demo service. It serves the GitHub-styled status UI and API, exposes `/health`, supports a partial application regression scenario, and emits Application Insights telemetry. |
 | `public/index.html` | Primer- and GitHub-brand-inspired status UI rendered for healthy, outage, and exception states. |
 | `public/mona-single.png` | Single mascot artwork used by the status UI. |
 | `test/server.test.js` | Verifies the documented failure modes and keeps the demo behavior reproducible. |
@@ -23,6 +23,7 @@ The demo is intentionally small, resettable, and safe to run in a dedicated Azur
 | `infra/main.bicep` | Declares the Azure resources required by the demo. |
 | `infra/README.md` | Infrastructure-specific deployment and review guidance. |
 | `scripts/seed-outage.sh` | Changes the deployed app to outage mode for the live incident demonstration. |
+| `scripts/seed-regression.sh` | Creates and pushes an intentional orders serialization regression branch and pull request so GitHub Actions deploys a realistic partial outage. |
 | `scripts/reset.sh` | Restores the deployed app to healthy mode. |
 | `scripts/configure-github-oidc.sh` | Creates the federated GitHub Actions identity and prints the GitHub Environment variables needed for deployment. |
 | `.github/workflows/ci.yml` | Installs dependencies, checks JavaScript syntax, and runs tests. |
@@ -118,8 +119,8 @@ curl -i http://localhost:8080/health
 Supported failure modes:
 
 - `healthy` (default): requests succeed.
-- `outage`: health and application requests return HTTP 503.
-- `exception`: application requests emit an exception and return HTTP 500.
+- `outage`: health and application requests return HTTP 503. This remains a fast resettable fallback.
+- `exception`: the landing page and health endpoint remain available, while the orders endpoint emits an exception and returns HTTP 500.
 
 The root endpoint renders a lightweight GitHub-styled status page. It reflects the active failure mode and keeps `/health` and `/api/orders` as the machine-readable contracts used by the deployment and Copilot investigation flow.
 
@@ -190,7 +191,7 @@ Push to `main` after the infrastructure exists. The `deploy.yml` workflow:
 
 Read `demo/demo-script.md` for the presenter script and `demo/prompts.md` for prompts that make Copilot's evidence trail visible.
 
-The outage is reproducible by changing the Container App environment variable `DEMO_FAILURE_MODE` to `outage`. The recovery path is to change it back to `healthy` through a reviewed pull request.
+The recommended incident is the GitHub-delivered partial regression. Set `GITHUB_REPOSITORY`, run `scripts/seed-regression.sh`, review and merge the generated pull request, and let GitHub Actions deploy it. The landing page and `/health` remain available, but `/api/orders` returns HTTP 500. Copilot must correlate the failure with the merged commit and deployment, implement a code fix in a follow-up pull request, and let GitHub Actions deploy the remediation. `scripts/seed-outage.sh` remains available as a fast full-outage fallback.
 
 ## Safety and governance
 

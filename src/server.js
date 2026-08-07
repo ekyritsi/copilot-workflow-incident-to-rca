@@ -38,6 +38,20 @@ function respondHtml(response, statusCode, mode) {
   response.end(statusPage.replace("__DEMO_MODE__", JSON.stringify(mode)));
 }
 
+function reportException(error) {
+  appInsights?.defaultClient?.trackException({ exception: error });
+  console.error(error);
+}
+
+function getOrdersPayload() {
+  return {
+    orders: [
+      { id: "demo-1001", status: "processing" },
+      { id: "demo-1002", status: "shipped" }
+    ]
+  };
+}
+
 function handleRequest(request, response) {
   const url = new URL(request.url ?? "/", `http://${request.headers.host ?? "localhost"}`);
   const mode = failureMode();
@@ -73,18 +87,17 @@ function handleRequest(request, response) {
 
     if (mode === "exception") {
       const error = new Error("Simulated orders serialization regression");
-      appInsights?.defaultClient?.trackException({ exception: error });
-      console.error(error);
+      reportException(error);
       respond(response, 500, { error: "internal_server_error" });
       return;
     }
 
-    respond(response, 200, {
-      orders: [
-        { id: "demo-1001", status: "processing" },
-        { id: "demo-1002", status: "shipped" }
-      ]
-    });
+    try {
+      respond(response, 200, getOrdersPayload());
+    } catch (error) {
+      reportException(error);
+      respond(response, 500, { error: "internal_server_error" });
+    }
     return;
   }
 
