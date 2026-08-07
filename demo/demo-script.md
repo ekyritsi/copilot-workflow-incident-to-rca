@@ -2,7 +2,7 @@
 
 ## Setup
 
-1. Show the healthy site and `/health` endpoint.
+1. Show the healthy site, `/health`, and `/api/orders` endpoints.
 2. Show the repository and the deployment workflow.
 3. Explain that the incident is introduced through a reviewed GitHub change and is reversible through a code fix.
 
@@ -11,7 +11,7 @@
 1. Run `GITHUB_REPOSITORY=github/copilot-workflow-incident-to-rca ./scripts/seed-regression.sh`.
 2. Review and merge the generated pull request.
 3. Let GitHub Actions deploy the new revision.
-4. Show the landing page and `/health` succeeding while `/api/orders` returns HTTP 500.
+4. Refresh the landing page and show Mona upside down, the incident banner, and the API health cards identifying `/api/orders` as HTTP 500 while `/health` remains HTTP 200.
 5. Ask Copilot to investigate without making changes.
 6. Highlight the evidence trail: endpoint failures, timestamps, deployment revision, merged commit, and Actions run.
 

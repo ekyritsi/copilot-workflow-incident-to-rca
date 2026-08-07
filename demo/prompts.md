@@ -15,7 +15,7 @@ Correlate the Azure failure window with recent Container App revisions, GitHub c
 ## Remediation
 
 ```text
-Propose the lowest-risk code fix for the orders regression. Include the exact file and change, tests for both /health and /api/orders, deployment plan, rollback plan, and risks. Do not modify files or deploy yet. Do not recommend simply changing DEMO_FAILURE_MODE or running reset.sh.
+Propose the lowest-risk code fix for the orders regression. Include the exact file and change, tests for both /health and /api/orders, deployment plan, rollback plan, and risks. Do not modify files or deploy yet. The remediation must be a code change delivered through a pull request and GitHub Actions.
 ```
 
 ```text

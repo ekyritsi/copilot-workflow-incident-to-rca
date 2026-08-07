@@ -16,15 +16,13 @@ The demo is intentionally small, resettable, and safe to run in a dedicated Azur
 | Path | Purpose |
 | --- | --- |
 | `src/server.js` | Node.js demo service. It serves the GitHub-styled status UI and API, exposes `/health`, supports a partial application regression scenario, and emits Application Insights telemetry. |
-| `public/index.html` | Primer- and GitHub-brand-inspired status UI rendered for healthy, outage, and exception states. |
+| `public/index.html` | Primer- and GitHub-brand-inspired status UI that probes every customer-facing API and makes partial outages visible. |
 | `public/mona-single.png` | Single mascot artwork used by the status UI. |
-| `test/server.test.js` | Verifies the documented failure modes and keeps the demo behavior reproducible. |
+| `test/server.test.js` | Verifies the documented API contracts. |
 | `Dockerfile` | Packages the service as a small, non-root Node.js container for Container Apps. |
 | `infra/main.bicep` | Declares the Azure resources required by the demo. |
 | `infra/README.md` | Infrastructure-specific deployment and review guidance. |
-| `scripts/seed-outage.sh` | Changes the deployed app to outage mode for the live incident demonstration. |
 | `scripts/seed-regression.sh` | Creates and pushes an intentional orders serialization regression branch and pull request so GitHub Actions deploys a realistic partial outage. |
-| `scripts/reset.sh` | Restores the deployed app to healthy mode. |
 | `scripts/configure-github-oidc.sh` | Creates the federated GitHub Actions identity and prints the GitHub Environment variables needed for deployment. |
 | `.github/workflows/ci.yml` | Installs dependencies, checks JavaScript syntax, and runs tests. |
 | `.github/workflows/deploy.yml` | Authenticates with Azure using OIDC, builds/pushes the image, updates the Container App, and runs a health smoke test. |
@@ -109,20 +107,14 @@ npm start
 
 Run `npm start`, then open <http://localhost:8080/> and <http://localhost:8080/health>.
 
-To reproduce an outage locally:
+To run the healthy app locally:
 
 ```bash
-DEMO_FAILURE_MODE=outage npm start
+npm start
 curl -i http://localhost:8080/health
 ```
 
-Supported failure modes:
-
-- `healthy` (default): requests succeed.
-- `outage`: health and application requests return HTTP 503. This remains a fast resettable fallback.
-- `exception`: the landing page and health endpoint remain available, while the orders endpoint emits an exception and returns HTTP 500.
-
-The root endpoint renders a lightweight GitHub-styled status page. It reflects the active failure mode and keeps `/health` and `/api/orders` as the machine-readable contracts used by the deployment and Copilot investigation flow.
+The root endpoint renders a lightweight GitHub-styled status page. It probes `/health` and `/api/orders` in the browser, so a failing orders API makes the site visibly show an incident even when the root page and health endpoint remain available.
 
 ## Azure deployment
 
@@ -191,7 +183,7 @@ Push to `main` after the infrastructure exists. The `deploy.yml` workflow:
 
 Read `demo/demo-script.md` for the presenter script and `demo/prompts.md` for prompts that make Copilot's evidence trail visible.
 
-The recommended incident is the GitHub-delivered partial regression. Set `GITHUB_REPOSITORY`, run `scripts/seed-regression.sh`, review and merge the generated pull request, and let GitHub Actions deploy it. The landing page and `/health` remain available, but `/api/orders` returns HTTP 500. Copilot must correlate the failure with the merged commit and deployment, implement a code fix in a follow-up pull request, and let GitHub Actions deploy the remediation. `scripts/seed-outage.sh` remains available as a fast full-outage fallback.
+The incident is the GitHub-delivered partial regression. Set `GITHUB_REPOSITORY`, run `scripts/seed-regression.sh`, review and merge the generated pull request, and let GitHub Actions deploy it. The landing page and `/health` remain available, while `/api/orders` returns HTTP 500. The UI probes both APIs, flips Mona upside down, and shows the failing endpoint. Copilot must correlate the failure with the merged commit and deployment, implement a code fix in a follow-up pull request, and let GitHub Actions deploy the remediation.
 
 ## Safety and governance
 

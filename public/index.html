@@ -64,8 +64,7 @@
     .status-panel { padding: 28px; }
     .status-line { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
     .status-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--success-emphasis); box-shadow: 0 0 0 5px color-mix(in srgb, var(--success-emphasis) 18%, transparent); }
-    .status-dot.outage { background: var(--danger-emphasis); box-shadow: 0 0 0 5px color-mix(in srgb, var(--danger-emphasis) 18%, transparent); }
-    .status-dot.exception { background: var(--attention-emphasis); box-shadow: 0 0 0 5px color-mix(in srgb, var(--attention-emphasis) 18%, transparent); }
+    .status-dot.incident { background: var(--danger-emphasis); box-shadow: 0 0 0 5px color-mix(in srgb, var(--danger-emphasis) 18%, transparent); }
     .status-title { margin: 0; font-size: 22px; }
     .status-copy { max-width: 620px; margin-bottom: 20px; color: var(--fg-muted); font-size: 16px; }
     .incident-banner { display: none; margin-bottom: 20px; border: 1px solid var(--danger-fg); border-left: 4px solid var(--danger-emphasis); border-radius: 6px; padding: 10px 12px; background: color-mix(in srgb, var(--danger-emphasis) 8%, var(--canvas-inset)); color: var(--danger-fg); font-size: 13px; font-weight: 600; }
@@ -75,10 +74,9 @@
     .art-panel { display: grid; place-items: center; min-height: 280px; padding: 18px; background: var(--canvas-subtle); overflow: hidden; }
     .art-frame { position: relative; width: min(100%, 285px); padding: 10px; border: 1px solid var(--border-default); border-radius: 6px; background: var(--canvas-inset); box-shadow: var(--shadow-medium); }
     .art-frame img { display: block; width: 100%; border-radius: 4px; }
-    .art-frame.outage img { transform: rotate(180deg); }
+    .art-frame.incident img { transform: rotate(180deg); }
     .sign { position: absolute; right: -34px; bottom: 18px; border: 1px solid var(--border-default); border-radius: 6px; padding: 8px 10px; transform: rotate(-5deg); background: var(--canvas-inset); color: var(--success-fg); font-size: 11px; font-weight: 700; text-align: center; box-shadow: var(--shadow-small); }
-    .sign.outage { color: var(--danger-fg); }
-    .sign.exception { color: var(--attention-fg); }
+    .sign.incident { color: var(--danger-fg); }
     .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
     .metric { padding: 18px; }
     .metric-label { margin-bottom: 8px; color: var(--fg-muted); font-size: 12px; font-weight: 600; text-transform: uppercase; }
@@ -99,10 +97,10 @@
     </header>
     <section class="hero">
       <article class="panel status-panel">
-        <div class="status-line"><span id="statusDot" class="status-dot"></span><h2 id="statusTitle" class="status-title">All systems operational</h2></div>
-        <p id="statusCopy" class="status-copy">The demo service is responding normally. Copilot can use the telemetry and change history to investigate this service.</p>
+        <div class="status-line"><span id="statusDot" class="status-dot"></span><h2 id="statusTitle" class="status-title">Checking service health...</h2></div>
+        <p id="statusCopy" class="status-copy">Checking every customer-facing API so a partial outage is visible immediately.</p>
         <div id="incidentBanner" class="incident-banner" role="alert"></div>
-        <span class="mode">Current mode: <code id="mode">healthy</code></span>
+        <span class="mode">Overall status: <code id="mode">checking</code></span>
       </article>
       <aside class="panel art-panel">
         <div class="art-frame">
@@ -113,29 +111,54 @@
     </section>
     <section class="metrics" aria-label="Service details">
       <article class="panel metric"><p class="metric-label">Service</p><p class="metric-value">incident-demo</p><p class="metric-note">Azure Container Apps</p></article>
-      <article class="panel metric"><p class="metric-label">Health endpoint</p><p id="health" class="metric-value">200 OK</p><p class="metric-note"><code>/health</code> · deployment smoke test</p></article>
-      <article class="panel metric"><p class="metric-label">Telemetry</p><p class="metric-value">Connected</p><p class="metric-note">Application Insights + Log Analytics</p></article>
+      <article class="panel metric"><p class="metric-label">Health API</p><p id="health" class="metric-value">Checking...</p><p class="metric-note"><code>/health</code> · platform signal</p></article>
+      <article class="panel metric"><p class="metric-label">Orders API</p><p id="orders" class="metric-value">Checking...</p><p class="metric-note"><code>/api/orders</code> · customer workflow</p></article>
     </section>
     <footer class="footer"><span>Built for the Copilot incident investigation flow.</span><span>Environment: synthetic data only</span></footer>
   </main>
   <script>
-    const mode = __DEMO_MODE__;
-    const states = {
-      healthy: { title: "All systems operational", copy: "The demo service is responding normally. Copilot can use the telemetry and change history to investigate this service.", sign: "SYSTEMS<br>OPERATIONAL", health: "200 OK", banner: "", className: "" },
-      outage: { title: "Incident detected", copy: "The simulated dependency is unavailable. This is the starting point for Copilot's telemetry, logs, change-correlation, and remediation flow.", sign: "INCIDENT<br>DETECTED", health: "503 ERROR", banner: "Customer impact: the service is unavailable.", className: "outage" },
-      exception: { title: "Application errors elevated", copy: "The service is reachable, but a simulated serialization regression is producing application exceptions for the orders endpoint.", sign: "ERRORS<br>ELEVATED", health: "200 OK", banner: "Customer impact: the orders experience is unavailable while the rest of the site remains reachable.", className: "exception" }
-    };
-    const state = states[mode] ?? states.healthy;
-    document.querySelector("#statusTitle").textContent = state.title;
-    document.querySelector("#statusCopy").textContent = state.copy;
-    document.querySelector("#incidentBanner").textContent = state.banner;
-    document.querySelector("#sign").innerHTML = state.sign;
-    document.querySelector("#health").textContent = state.health;
-    document.querySelector("#mode").textContent = mode;
-    document.querySelector("#statusDot").className = `status-dot ${state.className}`;
-    document.querySelector("#sign").className = `sign ${state.className}`;
-    document.querySelector(".art-frame").className = `art-frame ${state.className}`;
-    document.querySelector("#incidentBanner").className = `incident-banner ${mode === "outage" || mode === "exception" ? "visible" : ""}`;
+    const endpoints = [
+      { id: "health", path: "/health" },
+      { id: "orders", path: "/api/orders" }
+    ];
+
+    async function checkEndpoint(endpoint) {
+      try {
+        const response = await fetch(endpoint.path, { cache: "no-store" });
+        return { ...endpoint, ok: response.ok, status: response.status };
+      } catch {
+        return { ...endpoint, ok: false, status: 0 };
+      }
+    }
+
+    async function updateStatus() {
+      const results = await Promise.all(endpoints.map(checkEndpoint));
+      const failed = results.filter((result) => !result.ok);
+      const incident = failed.length > 0;
+      const status = incident ? "incident" : "healthy";
+
+      results.forEach((result) => {
+        const element = document.querySelector(`#${result.id}`);
+        element.textContent = result.status ? `${result.status} ${result.ok ? "OK" : "ERROR"}` : "UNREACHABLE";
+        element.style.color = result.ok ? "var(--success-fg)" : "var(--danger-fg)";
+      });
+
+      document.querySelector("#statusTitle").textContent = incident ? "Incident detected" : "All systems operational";
+      document.querySelector("#statusCopy").textContent = incident
+        ? "The site is reachable, but one or more customer-facing APIs are failing. Copilot can correlate the failing endpoint with the deployment and code change."
+        : "The demo service and its customer-facing APIs are responding normally. Copilot can use the telemetry and change history to investigate this service.";
+      document.querySelector("#incidentBanner").textContent = incident
+        ? `Customer impact: ${failed.map((result) => result.path).join(", ")} ${failed.length === 1 ? "is" : "are"} failing.`
+        : "";
+      document.querySelector("#incidentBanner").className = `incident-banner ${incident ? "visible" : ""}`;
+      document.querySelector("#sign").innerHTML = incident ? "INCIDENT<br>DETECTED" : "SYSTEMS<br>OPERATIONAL";
+      document.querySelector("#mode").textContent = status;
+      document.querySelector("#statusDot").className = `status-dot ${incident ? "incident" : ""}`;
+      document.querySelector("#sign").className = `sign ${incident ? "incident" : ""}`;
+      document.querySelector(".art-frame").className = `art-frame ${incident ? "incident" : ""}`;
+    }
+
+    updateStatus();
   </script>
 </body>
 </html>
