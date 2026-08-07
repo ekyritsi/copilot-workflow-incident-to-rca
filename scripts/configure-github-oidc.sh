@@ -9,6 +9,7 @@ fi
 : "${RESOURCE_GROUP:=rg-copilot-incident-demo}"
 : "${SUBSCRIPTION_ID:?Set SUBSCRIPTION_ID to the Azure subscription ID}"
 : "${TENANT_ID:?Set TENANT_ID to the Microsoft Entra tenant ID}"
+: "${DEPLOYMENT_NAME:=incident-to-rca}"
 
 github_owner="$1"
 github_repository="$2"
@@ -42,16 +43,26 @@ az identity federated-credential create \
   --audiences "api://AzureADTokenExchange" \
   --output none
 
-container_app_name="$(az deployment group show \
-  --resource-group "$RESOURCE_GROUP" \
-  --name incident-to-rca \
-  --query properties.outputs.containerAppName.value \
-  --output tsv 2>/dev/null || true)"
-registry_name="$(az deployment group show \
-  --resource-group "$RESOURCE_GROUP" \
-  --name incident-to-rca \
-  --query properties.outputs.registryName.value \
-  --output tsv 2>/dev/null || true)"
+container_app_name="${CONTAINER_APP_NAME:-}"
+registry_name="${REGISTRY_NAME:-}"
+
+if [[ -z "$container_app_name" || -z "$registry_name" ]]; then
+  container_app_name="$(az deployment group show \
+    --resource-group "$RESOURCE_GROUP" \
+    --name "$DEPLOYMENT_NAME" \
+    --query properties.outputs.containerAppName.value \
+    --output tsv 2>/dev/null || true)"
+  registry_name="$(az deployment group show \
+    --resource-group "$RESOURCE_GROUP" \
+    --name "$DEPLOYMENT_NAME" \
+    --query properties.outputs.registryName.value \
+    --output tsv 2>/dev/null || true)"
+fi
+
+if [[ -z "$container_app_name" || -z "$registry_name" ]]; then
+  echo "Set CONTAINER_APP_NAME and REGISTRY_NAME, or provide a successful DEPLOYMENT_NAME." >&2
+  exit 1
+fi
 
 az role assignment create \
   --assignee-object-id "$principal_id" \

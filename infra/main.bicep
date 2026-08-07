@@ -108,12 +108,6 @@ resource containerApp 'Microsoft.App/containerApps@2025-01-01' = {
         transport: 'auto'
         allowInsecure: false
       }
-      registries: [
-        {
-          server: registry.properties.loginServer
-          identity: 'System'
-        }
-      ]
     }
     template: {
       containers: [
@@ -141,19 +135,6 @@ resource containerApp 'Microsoft.App/containerApps@2025-01-01' = {
         maxReplicas: 1
       }
     }
-  }
-}
-
-resource acrPullRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(registry.id, containerApp.id, 'acrpull')
-  scope: registry
-  properties: {
-    principalId: containerApp.identity.principalId
-    principalType: 'ServicePrincipal'
-    roleDefinitionId: subscriptionResourceId(
-      'Microsoft.Authorization/roleDefinitions',
-      '7f951dda-4ed3-4680-a7ca-43fe172d538d'
-    )
   }
 }
 
