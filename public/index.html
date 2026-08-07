@@ -101,7 +101,7 @@
       <article class="panel status-panel">
         <div class="status-line"><span id="statusDot" class="status-dot"></span><h2 id="statusTitle" class="status-title">All systems operational</h2></div>
         <p id="statusCopy" class="status-copy">The demo service is responding normally. Copilot can use the telemetry and change history to investigate this service.</p>
-        <div id="incidentBanner" class="incident-banner" role="alert">Customer impact: the service is unavailable.</div>
+        <div id="incidentBanner" class="incident-banner" role="alert"></div>
         <span class="mode">Current mode: <code id="mode">healthy</code></span>
       </article>
       <aside class="panel art-panel">
@@ -121,13 +121,14 @@
   <script>
     const mode = __DEMO_MODE__;
     const states = {
-      healthy: { title: "All systems operational", copy: "The demo service is responding normally. Copilot can use the telemetry and change history to investigate this service.", sign: "SYSTEMS<br>OPERATIONAL", health: "200 OK", className: "" },
-      outage: { title: "Incident detected", copy: "The simulated dependency is unavailable. This is the starting point for Copilot's telemetry, logs, change-correlation, and remediation flow.", sign: "INCIDENT<br>DETECTED", health: "503 ERROR", className: "outage" },
-      exception: { title: "Application errors elevated", copy: "The service is reachable, but a simulated serialization regression is producing application exceptions for the orders endpoint.", sign: "ERRORS<br>ELEVATED", health: "500 ERROR", className: "exception" }
+      healthy: { title: "All systems operational", copy: "The demo service is responding normally. Copilot can use the telemetry and change history to investigate this service.", sign: "SYSTEMS<br>OPERATIONAL", health: "200 OK", banner: "", className: "" },
+      outage: { title: "Incident detected", copy: "The simulated dependency is unavailable. This is the starting point for Copilot's telemetry, logs, change-correlation, and remediation flow.", sign: "INCIDENT<br>DETECTED", health: "503 ERROR", banner: "Customer impact: the service is unavailable.", className: "outage" },
+      exception: { title: "Application errors elevated", copy: "The service is reachable, but a simulated serialization regression is producing application exceptions for the orders endpoint.", sign: "ERRORS<br>ELEVATED", health: "200 OK", banner: "Customer impact: the orders experience is unavailable while the rest of the site remains reachable.", className: "exception" }
     };
     const state = states[mode] ?? states.healthy;
     document.querySelector("#statusTitle").textContent = state.title;
     document.querySelector("#statusCopy").textContent = state.copy;
+    document.querySelector("#incidentBanner").textContent = state.banner;
     document.querySelector("#sign").innerHTML = state.sign;
     document.querySelector("#health").textContent = state.health;
     document.querySelector("#mode").textContent = mode;
