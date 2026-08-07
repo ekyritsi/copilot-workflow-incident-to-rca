@@ -64,12 +64,16 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           registry_login_server="$(az acr show --name "$REGISTRY_NAME" --query loginServer --output tsv)"
+          az containerapp registry set \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$CONTAINER_APP_NAME" \
+            --server "$registry_login_server" \
+            --identity system \
+            --output none
           az containerapp update \
             --resource-group "$RESOURCE_GROUP" \
             --name "$CONTAINER_APP_NAME" \
             --image "${registry_login_server}/incident-demo:${IMAGE_TAG}" \
-            --registry-server "$registry_login_server" \
-            --registry-identity system \
             --set-env-vars DEMO_FAILURE_MODE=healthy \
             --output none
 
