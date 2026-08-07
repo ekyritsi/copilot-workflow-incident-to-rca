@@ -15,15 +15,24 @@ test("the orders API returns its documented payload", async () => {
 
   try {
     await new Promise((resolve, reject) => {
+      let output = "";
+      const timeout = setTimeout(() => {
+        reject(new Error("server did not start within 10 seconds"));
+      }, 10_000);
+      const settle = (callback, value) => {
+        clearTimeout(timeout);
+        callback(value);
+      };
       const onData = (data) => {
-        if (data.toString().includes("listening on port")) {
-          resolve();
+        output += data.toString();
+        if (output.includes("listening on port")) {
+          settle(resolve);
         }
       };
       server.stdout.on("data", onData);
-      server.once("error", reject);
+      server.once("error", (error) => settle(reject, error));
       server.once("exit", (code) => {
-        reject(new Error(`server exited before startup with code ${code}`));
+        settle(reject, new Error(`server exited before startup with code ${code}`));
       });
     });
 
