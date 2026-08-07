@@ -105,7 +105,7 @@ Copilot App <--- Azure MCP Server ------------------+
    ./scripts/configure-github-oidc.sh <github-owner> <github-repository>
    ```
 
-5. In repository settings, create the `demo` Environment, add every printed value as an Environment **Variable**, and configure required reviewers. Then push to `main` to build and deploy the app.
+5. In repository settings, create the `demo` Environment, add every printed value as an Environment **Variable**, and configure required reviewers. Then run `gh workflow run deploy.yml` to build and deploy the app; subsequent pushes to `main` deploy automatically.
 
 6. In Copilot App, confirm the repository is open and Azure MCP plus WorkIQ/M365 are available. Run the prompts in `demo/prompts.md` to execute the incident, remediation, Word RCA, and leadership-deck workflow.
 
