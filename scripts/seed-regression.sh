@@ -4,16 +4,29 @@ set -euo pipefail
 : "${GITHUB_REPOSITORY:?Set GITHUB_REPOSITORY to owner/repository}"
 
 repo_root="$(git rev-parse --show-toplevel)"
-branch="${1:-demo/orders-serialization-regression}"
+requested_branch="${1:-demo/orders-serialization-regression}"
+branch="$requested_branch"
 
 if ! git diff --quiet || ! git diff --cached --quiet; then
   echo "Working tree is not clean. Commit or stash changes before seeding the regression." >&2
   exit 1
 fi
 
-if git show-ref --verify --quiet "refs/heads/$branch"; then
-  echo "Branch already exists: $branch" >&2
-  exit 1
+branch_exists() {
+  git show-ref --verify --quiet "refs/heads/$1" ||
+    git ls-remote --exit-code --heads origin "$1" >/dev/null 2>&1
+}
+
+if branch_exists "$branch"; then
+  suffix="$(date -u +%Y%m%d-%H%M%S)"
+  branch="${requested_branch}-${suffix}"
+  attempt=2
+  while branch_exists "$branch"; do
+    branch="${requested_branch}-${suffix}-${attempt}"
+    attempt=$((attempt + 1))
+  done
+  echo "Branch already exists: $requested_branch" >&2
+  echo "Using new branch: $branch" >&2
 fi
 
 git switch -c "$branch"

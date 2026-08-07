@@ -183,7 +183,7 @@ Push to `main` after the infrastructure exists. The `deploy.yml` workflow:
 
 Read `demo/demo-script.md` for the presenter script and `demo/prompts.md` for prompts that make Copilot's evidence trail visible.
 
-The incident is the GitHub-delivered partial regression. Set `GITHUB_REPOSITORY`, run `scripts/seed-regression.sh`, review and merge the generated pull request, and let GitHub Actions deploy it. The landing page and `/health` remain available, while `/api/orders` returns HTTP 500. The UI probes both APIs, flips Mona upside down, and shows the failing endpoint. Copilot must correlate the failure with the merged commit and deployment, implement a code fix in a follow-up pull request, and let GitHub Actions deploy the remediation.
+The incident is the GitHub-delivered partial regression. Set `GITHUB_REPOSITORY`, run `scripts/seed-regression.sh`, review and merge the generated pull request, and let GitHub Actions deploy it. The seeder automatically adds a UTC timestamp to the branch name when a previous run already used the default branch, so the demo can be repeated without manual branch cleanup. The landing page and `/health` remain available, while `/api/orders` returns HTTP 500. The UI probes both APIs, flips Mona upside down, and shows the failing endpoint. Copilot must correlate the failure with the merged commit and deployment, implement a code fix in a follow-up pull request, and let GitHub Actions deploy the remediation.
 
 ## Safety and governance
 
