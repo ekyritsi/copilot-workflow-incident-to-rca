@@ -55,11 +55,59 @@ Copilot App <--- Azure MCP Server ------------------+
 
 - Azure subscription and a dedicated resource group
 - Azure CLI authenticated with `az login`
+- GitHub CLI authenticated with `gh auth login` (used by the regression seeder)
 - Node.js 22 or later
-- Docker Desktop or another Docker engine
 - GitHub repository with Actions enabled
 - Azure MCP Server configured in Copilot App
+- WorkIQ/M365 connected in Copilot App for the Word RCA and leadership deck
 - Permissions to deploy to the demo resource group
+
+## New TPM quick start
+
+1. Clone the repository and open the cloned folder in GitHub Copilot App:
+
+   ```bash
+   git clone https://github.com/<github-owner>/<github-repository>.git
+   cd <github-repository>
+   gh auth login
+   az login
+   ```
+
+2. Create a dedicated resource group and set the Azure subscription:
+
+   ```bash
+   az account set --subscription "<your-subscription-id>"
+   az group create --name "<your-resource-group>" --location eastus
+   ```
+
+3. Provision the Azure infrastructure and keep the deployment name `incident-to-rca`:
+
+   ```bash
+   az deployment group what-if \
+     --name incident-to-rca \
+     --resource-group "<your-resource-group>" \
+     --template-file infra/main.bicep \
+     --parameters appName=incident-demo
+
+   az deployment group create \
+     --name incident-to-rca \
+     --resource-group "<your-resource-group>" \
+     --template-file infra/main.bicep \
+     --parameters appName=incident-demo
+   ```
+
+4. Configure GitHub Actions OIDC. The helper discovers the Container App and registry from the named deployment and prints the GitHub Environment variables:
+
+   ```bash
+   export RESOURCE_GROUP="<your-resource-group>"
+   export SUBSCRIPTION_ID="<your-subscription-id>"
+   export TENANT_ID="<your-tenant-id>"
+   ./scripts/configure-github-oidc.sh <github-owner> <github-repository>
+   ```
+
+5. In repository settings, create the `demo` Environment, add every printed value as an Environment **Variable**, and configure required reviewers. Then push to `main` to build and deploy the app.
+
+6. In Copilot App, confirm the repository is open and Azure MCP plus WorkIQ/M365 are available. Run the prompts in `demo/prompts.md` to execute the incident, remediation, Word RCA, and leadership-deck workflow.
 
 ## Azure resources
 
@@ -86,10 +134,12 @@ az login
 az account set --subscription "<your-subscription-id>"
 az group create --name "<your-resource-group>" --location eastus
 az deployment group what-if \
+  --name incident-to-rca \
   --resource-group "<your-resource-group>" \
   --template-file infra/main.bicep \
   --parameters appName=incident-demo
 az deployment group create \
+  --name incident-to-rca \
   --resource-group "<your-resource-group>" \
   --template-file infra/main.bicep \
   --parameters appName=incident-demo
@@ -132,11 +182,13 @@ The application is deployed separately through GitHub Actions.
 
 ```bash
 az deployment group what-if \
+  --name incident-to-rca \
   --resource-group rg-copilot-incident-demo \
   --template-file infra/main.bicep \
   --parameters appName=incident-demo
 
 az deployment group create \
+  --name incident-to-rca \
   --resource-group rg-copilot-incident-demo \
   --template-file infra/main.bicep \
   --parameters appName=incident-demo
@@ -167,7 +219,7 @@ The values above are identifiers, not credentials, so they belong in GitHub Envi
 
 In repository settings, create an environment named `demo`, add the variables above, and configure required reviewers. This makes production-like deployment approval visible during the demo.
 
-The workflow uses the `demo` Environment, so the OIDC federated credential must match that environment. The setup script supports deployment-specific `CONTAINER_APP_NAME`, `REGISTRY_NAME`, `RESOURCE_GROUP`, `SUBSCRIPTION_ID`, and `TENANT_ID` environment variables when the deployment output is not the default deployment name.
+The workflow uses the `demo` Environment, so the OIDC federated credential must use the subject `repo:<github-owner>/<github-repository>:environment:demo`. The setup script creates this credential and supports deployment-specific `CONTAINER_APP_NAME`, `REGISTRY_NAME`, `RESOURCE_GROUP`, `SUBSCRIPTION_ID`, and `TENANT_ID` environment variables when the deployment output is not the default deployment name.
 
 ### Deploy the app
 

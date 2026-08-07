@@ -1,6 +1,6 @@
 # Infrastructure
 
-`main.bicep` provisions the smallest useful Azure environment for this demo:
+`main.bicep` provisions the smallest useful Azure environment for this demo. Clone the repository first, select the target subscription, and use a dedicated resource group.
 
 - Azure Container Apps managed environment
 - Azure Container App with scale-to-zero
@@ -8,18 +8,23 @@
 - Workspace-based Application Insights
 - Log Analytics workspace
 
+The Container App intentionally uses `minReplicas: 0` to reduce idle cost. The first request after inactivity can therefore take several seconds while a replica starts.
+
 The template is scoped to a resource group and uses a deterministic suffix so it can be deployed repeatedly without collisions.
 
 Before deployment:
 
 ```bash
 az deployment group what-if \
+  --name incident-to-rca \
   --resource-group rg-copilot-incident-demo \
   --template-file infra/main.bicep \
   --parameters appName=incident-demo
 ```
 
 The resource group should remain dedicated to the demo. Review the generated plan before creating resources.
+
+After provisioning, run `../scripts/configure-github-oidc.sh` with `RESOURCE_GROUP`, `SUBSCRIPTION_ID`, and `TENANT_ID` set. Create the repository `demo` Environment and add the printed values before pushing to `main`.
 
 ## Resource map
 
