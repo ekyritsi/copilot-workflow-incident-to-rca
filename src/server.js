@@ -4,7 +4,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const port = Number.parseInt(process.env.PORT ?? "8080", 10);
-const failureMode = () => process.env.DEMO_FAILURE_MODE ?? "healthy";
 const publicDirectory = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "public");
 const statusPage = await readFile(path.join(publicDirectory, "index.html"), "utf8");
 const mascotImage = await readFile(path.join(publicDirectory, "mona-single.png"));
@@ -30,12 +29,12 @@ function respond(response, statusCode, body) {
   response.end(JSON.stringify(body));
 }
 
-function respondHtml(response, statusCode, mode) {
-  response.writeHead(statusCode, {
+function respondHtml(response) {
+  response.writeHead(200, {
     "Content-Type": "text/html; charset=utf-8",
     "Cache-Control": "no-store"
   });
-  response.end(statusPage.replace("__DEMO_MODE__", JSON.stringify(mode)));
+  response.end(statusPage);
 }
 
 function reportException(error) {
@@ -54,7 +53,6 @@ function getOrdersPayload() {
 
 function handleRequest(request, response) {
   const url = new URL(request.url ?? "/", `http://${request.headers.host ?? "localhost"}`);
-  const mode = failureMode();
 
   if (url.pathname === "/mona-single.png") {
     response.writeHead(200, {
@@ -66,32 +64,11 @@ function handleRequest(request, response) {
   }
 
   if (url.pathname === "/health") {
-    respond(
-      response,
-      mode === "outage" ? 503 : 200,
-      mode === "outage"
-        ? { status: "unhealthy", reason: "DEMO_FAILURE_MODE=outage" }
-        : { status: "healthy", mode, timestamp: new Date().toISOString() }
-    );
+    respond(response, 200, { status: "healthy", timestamp: new Date().toISOString() });
     return;
   }
 
   if (url.pathname === "/api/orders") {
-    if (mode === "outage") {
-      respond(response, 503, {
-        error: "orders_backend_unavailable",
-        message: "The simulated orders dependency is unavailable."
-      });
-      return;
-    }
-
-    if (mode === "exception") {
-      const error = new Error("Simulated orders serialization regression");
-      reportException(error);
-      respond(response, 500, { error: "internal_server_error" });
-      return;
-    }
-
     try {
       respond(response, 200, getOrdersPayload());
     } catch (error) {
@@ -102,7 +79,7 @@ function handleRequest(request, response) {
   }
 
   if (url.pathname === "/") {
-    respondHtml(response, mode === "outage" ? 503 : 200, mode);
+    respondHtml(response);
     return;
   }
 
@@ -112,7 +89,6 @@ function handleRequest(request, response) {
 const server = http.createServer(handleRequest);
 server.listen(port, () => {
   console.log(`incident-to-rca-demo listening on port ${port}`);
-  console.log(`failure mode: ${failureMode()}`);
 });
 
 function shutdown(signal) {

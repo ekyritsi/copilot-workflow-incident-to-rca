@@ -123,10 +123,6 @@ resource containerApp 'Microsoft.App/containerApps@2025-01-01' = {
               name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
               value: appInsights.properties.ConnectionString
             }
-            {
-              name: 'DEMO_FAILURE_MODE'
-              value: 'healthy'
-            }
           ]
         }
       ]

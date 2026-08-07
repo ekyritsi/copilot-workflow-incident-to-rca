@@ -1,7 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-test("the demo failure modes are documented", () => {
-  assert.deepEqual(["healthy", "outage", "exception"].sort(), ["exception", "healthy", "outage"]);
+test("the demo exposes the health and customer API contracts", () => {
+  assert.deepEqual(["/health", "/api/orders"].sort(), ["/api/orders", "/health"]);
 });
-

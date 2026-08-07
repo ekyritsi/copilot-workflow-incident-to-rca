@@ -74,7 +74,6 @@ jobs:
             --resource-group "$RESOURCE_GROUP" \
             --name "$CONTAINER_APP_NAME" \
             --image "${registry_login_server}/incident-demo:${IMAGE_TAG}" \
-            --set-env-vars DEMO_FAILURE_MODE=healthy \
             --output none
 
       - name: Smoke test
