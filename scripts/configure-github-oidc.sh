@@ -42,11 +42,23 @@ az identity federated-credential create \
   --audiences "api://AzureADTokenExchange" \
   --output none
 
-web_app_name="$(az deployment group show \
+container_app_name="$(az deployment group show \
   --resource-group "$RESOURCE_GROUP" \
   --name incident-to-rca \
-  --query properties.outputs.webAppName.value \
+  --query properties.outputs.containerAppName.value \
   --output tsv 2>/dev/null || true)"
+registry_name="$(az deployment group show \
+  --resource-group "$RESOURCE_GROUP" \
+  --name incident-to-rca \
+  --query properties.outputs.registryName.value \
+  --output tsv 2>/dev/null || true)"
+
+az role assignment create \
+  --assignee-object-id "$principal_id" \
+  --assignee-principal-type ServicePrincipal \
+  --role AcrPush \
+  --scope "$(az acr show --resource-group "$RESOURCE_GROUP" --name "$registry_name" --query id --output tsv)" \
+  --output none
 
 cat <<EOF
 Configure these GitHub repository variables:
@@ -55,9 +67,9 @@ AZURE_CLIENT_ID=$client_id
 AZURE_SUBSCRIPTION_ID=$SUBSCRIPTION_ID
 AZURE_TENANT_ID=$TENANT_ID
 AZURE_RESOURCE_GROUP=$RESOURCE_GROUP
-AZURE_WEBAPP_NAME=$web_app_name
+AZURE_CONTAINER_APP_NAME=$container_app_name
+AZURE_ACR_NAME=$registry_name
 
 The identity currently has Contributor at the demo resource-group scope.
 Replace it with a narrower custom role before using this pattern outside the demo.
 EOF
-

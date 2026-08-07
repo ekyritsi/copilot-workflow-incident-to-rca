@@ -2,8 +2,9 @@
 
 `main.bicep` provisions the smallest useful Azure environment for this demo:
 
-- Linux App Service plan
-- Linux App Service
+- Azure Container Apps managed environment
+- Azure Container App with scale-to-zero
+- Basic Azure Container Registry
 - Workspace-based Application Insights
 - Log Analytics workspace
 
@@ -19,4 +20,3 @@ az deployment group what-if \
 ```
 
 The resource group should remain dedicated to the demo. Review the generated plan before creating resources.
-

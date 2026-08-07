@@ -8,7 +8,7 @@
 
 ## Incident
 
-1. Set `DEMO_FAILURE_MODE=outage` in the demo environment.
+1. Set `DEMO_FAILURE_MODE=outage` on the Container App.
 2. Show the site returning HTTP 503.
 3. Ask Copilot to investigate without making changes.
 4. Highlight the evidence trail: endpoint failures, timestamps, deployment/configuration history, and GitHub changes.
@@ -27,4 +27,3 @@
 1. Ask Copilot to create the RCA in M365.
 2. Ask Copilot to create the LT deck.
 3. End by showing that the same evidence became an operational fix, a durable record, and an executive communication.
-

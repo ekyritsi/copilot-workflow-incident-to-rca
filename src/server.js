@@ -1,34 +1,27 @@
 import http from "node:http";
-import process from "node:process";
-import { fileURLToPath } from "node:url";
 
-const port = Number.parseInt(process.env.PORT ?? "3000", 10);
+const port = Number.parseInt(process.env.PORT ?? "8080", 10);
 const failureMode = () => process.env.DEMO_FAILURE_MODE ?? "healthy";
 
 let appInsights;
-try {
-  if (process.env.APPLICATIONINSIGHTS_CONNECTION_STRING) {
-    const module = await import("applicationinsights");
-    appInsights = module.default ?? module;
-    appInsights
-      .setup(process.env.APPLICATIONINSIGHTS_CONNECTION_STRING)
-      .setAutoCollectConsole(true, true)
-      .setAutoCollectDependencies(true)
-      .setAutoCollectExceptions(true)
-      .setAutoCollectPerformance(true, true)
-      .start();
-  }
-} catch (error) {
-  console.error("Application Insights initialization failed", error);
-  process.exitCode = 1;
+if (process.env.APPLICATIONINSIGHTS_CONNECTION_STRING) {
+  const module = await import("applicationinsights");
+  appInsights = module.default ?? module;
+  appInsights
+    .setup(process.env.APPLICATIONINSIGHTS_CONNECTION_STRING)
+    .setAutoCollectConsole(true, true)
+    .setAutoCollectDependencies(true)
+    .setAutoCollectExceptions(true)
+    .setAutoCollectPerformance(true, true)
+    .start();
 }
 
-function respond(response, statusCode, body, contentType = "application/json") {
+function respond(response, statusCode, body) {
   response.writeHead(statusCode, {
-    "Content-Type": `${contentType}; charset=utf-8`,
+    "Content-Type": "application/json; charset=utf-8",
     "Cache-Control": "no-store"
   });
-  response.end(contentType === "application/json" ? JSON.stringify(body) : body);
+  response.end(JSON.stringify(body));
 }
 
 function handleRequest(request, response) {
@@ -36,20 +29,13 @@ function handleRequest(request, response) {
   const mode = failureMode();
 
   if (url.pathname === "/health") {
-    if (mode === "outage") {
-      respond(response, 503, {
-        status: "unhealthy",
-        reason: "DEMO_FAILURE_MODE=outage",
-        timestamp: new Date().toISOString()
-      });
-      return;
-    }
-
-    respond(response, 200, {
-      status: "healthy",
-      mode,
-      timestamp: new Date().toISOString()
-    });
+    respond(
+      response,
+      mode === "outage" ? 503 : 200,
+      mode === "outage"
+        ? { status: "unhealthy", reason: "DEMO_FAILURE_MODE=outage" }
+        : { status: "healthy", mode, timestamp: new Date().toISOString() }
+    );
     return;
   }
 
@@ -116,8 +102,4 @@ function shutdown(signal) {
 
 process.on("SIGTERM", () => shutdown("SIGTERM"));
 process.on("SIGINT", () => shutdown("SIGINT"));
-
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  // The server is started by importing this module or running it directly.
-}
 

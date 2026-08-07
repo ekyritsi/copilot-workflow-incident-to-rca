@@ -17,7 +17,7 @@ The demo is intentionally small, resettable, and safe to run in a dedicated Azur
 GitHub repository
   |-- GitHub Actions ------------------------------+
   |                                                 |
-  +-- Node.js demo app --> Azure App Service       |
+  +-- Node.js demo app --> Azure Container Apps    |
                               |                    |
                               +--> Application Insights
                               |        |
@@ -32,7 +32,8 @@ Copilot App <--- Azure MCP Server ------------------+
 
 - Azure subscription and a dedicated resource group
 - Azure CLI authenticated with `az login`
-- Node.js 20 or later
+- Node.js 22 or later
+- Docker Desktop or another Docker engine
 - GitHub repository with Actions enabled
 - Azure MCP Server configured in Copilot App
 - Permissions to deploy to the demo resource group
@@ -45,13 +46,13 @@ npm test
 npm start
 ```
 
-Open <http://localhost:3000/> and <http://localhost:3000/health>.
+Run `npm start`, then open <http://localhost:8080/> and <http://localhost:8080/health>.
 
 To reproduce an outage locally:
 
 ```bash
 DEMO_FAILURE_MODE=outage npm start
-curl -i http://localhost:3000/health
+curl -i http://localhost:8080/health
 ```
 
 Supported failure modes:
@@ -64,8 +65,9 @@ Supported failure modes:
 
 The infrastructure is defined in `infra/main.bicep`. It creates:
 
-- Linux App Service plan
-- Linux App Service
+- Azure Container Apps managed environment
+- Azure Container App
+- Basic Azure Container Registry
 - Log Analytics workspace
 - Workspace-based Application Insights
 
@@ -85,7 +87,7 @@ az deployment group create \
   --parameters appName=incident-demo
 ```
 
-The deployment outputs the App Service name and URL. Keep the resource group dedicated to this demo.
+The deployment creates a scale-to-zero Container App and a Basic Container Registry. This avoids dedicated App Service VM quota and reduces idle compute cost. Keep the resource group dedicated to this demo.
 
 ### Configure GitHub Actions authentication
 
@@ -101,7 +103,8 @@ Follow the script output to add these GitHub repository variables:
 - `AZURE_SUBSCRIPTION_ID`
 - `AZURE_TENANT_ID`
 - `AZURE_RESOURCE_GROUP`
-- `AZURE_WEBAPP_NAME`
+- `AZURE_CONTAINER_APP_NAME`
+- `AZURE_ACR_NAME`
 
 The bootstrap identity is scoped to the demo resource group for simplicity. Use a custom least-privilege deployment role before adapting this pattern for production.
 
@@ -115,14 +118,15 @@ Push to `main` after the infrastructure exists. The `deploy.yml` workflow:
 
 1. Runs tests.
 2. Logs into Azure through OIDC.
-3. Publishes the Node.js app to App Service.
-4. Runs a smoke test against `/health`.
+3. Builds and pushes the image to Azure Container Registry.
+4. Updates the Container App revision.
+5. Runs a smoke test against `/health`.
 
 ## Demo flow
 
 Read `demo/demo-script.md` for the presenter script and `demo/prompts.md` for prompts that make Copilot's evidence trail visible.
 
-The outage is reproducible by changing the App Service application setting `DEMO_FAILURE_MODE` to `outage`. The recovery path is to change it back to `healthy` through a reviewed pull request.
+The outage is reproducible by changing the Container App environment variable `DEMO_FAILURE_MODE` to `outage`. The recovery path is to change it back to `healthy` through a reviewed pull request.
 
 ## Safety and governance
 
