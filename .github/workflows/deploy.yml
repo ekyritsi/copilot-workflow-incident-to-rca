@@ -38,7 +38,7 @@ jobs:
         run: npm run check && npm test
 
       - name: Azure login
-        uses: azure/login@v2
+        uses: azure/login@v3
         with:
           # These are non-secret identifiers. OIDC avoids a stored client secret.
           client-id: ${{ vars.AZURE_CLIENT_ID }}
