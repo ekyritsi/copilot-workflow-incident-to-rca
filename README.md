@@ -142,7 +142,7 @@ az deployment group create \
   --parameters appName=incident-demo
 ```
 
-The deployment creates a scale-to-zero Container App and a Basic Container Registry. This avoids dedicated App Service VM quota and reduces idle compute cost. Keep the resource group dedicated to this demo.
+The deployment creates a scale-to-zero Container App (`minReplicas: 0`) and a Basic Container Registry. This avoids dedicated App Service VM quota and reduces idle compute cost. Because the app can scale to zero, the first refresh after inactivity may take several seconds while a replica starts; subsequent requests should be faster. Keep the resource group dedicated to this demo.
 
 ### Configure GitHub Actions authentication
 

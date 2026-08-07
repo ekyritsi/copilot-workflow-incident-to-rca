@@ -13,8 +13,17 @@ if ! git diff --quiet || ! git diff --cached --quiet; then
 fi
 
 branch_exists() {
-  git show-ref --verify --quiet "refs/heads/$1" ||
-    git ls-remote --exit-code --heads origin "$1" >/dev/null 2>&1
+  if git show-ref --verify --quiet "refs/heads/$1"; then
+    return 0
+  fi
+
+  local status=0
+  git ls-remote --exit-code --heads origin "$1" >/dev/null 2>&1 || status=$?
+  case "$status" in
+    0) return 0 ;;
+    2) return 1 ;;
+    *) echo "Unable to check remote branch: $1" >&2; exit "$status" ;;
+  esac
 }
 
 if branch_exists "$branch"; then
@@ -29,7 +38,8 @@ if branch_exists "$branch"; then
   echo "Using new branch: $branch" >&2
 fi
 
-git switch -c "$branch"
+git fetch origin main --quiet
+git switch -c "$branch" origin/main
 git apply "$repo_root/demo/orders-serialization-regression.patch"
 git add src/server.js
 git commit -m "Introduce orders serialization regression for incident demo"
