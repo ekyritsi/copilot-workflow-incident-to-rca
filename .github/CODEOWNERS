@@ -1,0 +1,5 @@
+# Require review from the demo owners for infrastructure and deployment changes.
+* @sviera91
+/infra/ @sviera91
+/.github/workflows/ @sviera91
+

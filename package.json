@@ -1,0 +1,16 @@
+{
+  "name": "copilot-workflow-incident-to-rca",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A small instrumented web app for the GitHub Copilot incident-to-RCA workflow demo.",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test",
+    "check": "node --check src/server.js"
+  },
+  "dependencies": {
+    "applicationinsights": "^3.7.0"
+  }
+}
+
