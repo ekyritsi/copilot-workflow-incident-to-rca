@@ -49,7 +49,10 @@ function getOrdersPayload() {
   ];
 
   return {
-    orders
+    orders: orders.map((order) => ({
+      ...order,
+      estimatedDelivery: order.estimatedDelivery.toISOString()
+    }))
   };
 }
 
